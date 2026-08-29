@@ -1,4 +1,4 @@
-import { Book } from "@/types/book";
+import type { Book } from "@/types/book";
 
 type OpenLibrarySearchResponse = {
   numFound: number;
@@ -13,7 +13,7 @@ type OpenLibraryBook = {
   cover_i?: number;
 };
 
-export async function getOpenLibraryBooks(
+export async function searchOpenLibraryBooks(
   name: string,
   limit: number = 5,
 ): Promise<Book[]> {
@@ -24,7 +24,7 @@ export async function getOpenLibraryBooks(
   const data: OpenLibrarySearchResponse = await response.json();
 
   const openLibraryBooks: Book[] = data.docs.map((book) => ({
-    id: book.key,
+    id: book.key.replace(/^\/works\//, ""),
 
     title: book.title,
 
