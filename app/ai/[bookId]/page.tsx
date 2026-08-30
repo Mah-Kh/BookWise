@@ -1,4 +1,4 @@
-import { getBookById } from "@/services/bookService";
+import { getBookById } from "@/services/openLibraryService";
 import AiChat from "../[bookId]/AiChat";
 
 export default async function AiBookPage({
