@@ -70,21 +70,19 @@ export async function getBookById(bookId: string): Promise<BookMetadata> {
 }
 
 export async function searchOpenLibraryBooks(
-  name: string,
+  query: string,
   limit: number = 5,
 ): Promise<Book[]> {
   const booksResultsLimit = limit > 100 ? 100 : limit;
 
   const response = await fetch(
-    `https://openlibrary.org/search.json?q=${encodeURIComponent(name)}&limit=${booksResultsLimit}`,
+    `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=${booksResultsLimit}`,
   );
 
   if (!response.ok) {
     throw new Error(`Failed to search books: ${response.status}`);
   }
-
   const data: OpenLibrarySearchResponse = await response.json();
-
   return data.docs.map((book) => ({
     id: book.key.replace(/^\/works\//, ""),
     title: book.title,

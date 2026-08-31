@@ -15,7 +15,6 @@ export default async function LibraryPage({
 
   if (search) {
     try {
-      // openLibraryBooks = await searchOpenLibraryBooks("the hobbit", 500);
       openLibraryBooks = await searchOpenLibraryBooks(search, 5);
     } catch (err) {
       error = err instanceof Error ? err.message : "Something went wrong";
