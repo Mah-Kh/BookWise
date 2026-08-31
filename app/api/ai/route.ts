@@ -1,23 +1,20 @@
-import { enrichBook } from "@/services/bookEnrichmentService";
+import { getBookById } from "@/services/openLibraryService";
 import type { AiRequest, OllamaResponse } from "@/types/ai";
 
 export async function POST(request: Request) {
   const clientData: AiRequest = await request.json();
 
-  const start = Date.now();
-
-  const book = await enrichBook(clientData.bookId);
+  const book = await getBookById(clientData.bookId);
 
   const prompt = `
   You are a book assistant.
-  Answer the user's question using the provided book context.
+  You only have access to the book information provided below. Treat this information as the complete source of information about the book.
 
   Important:
-  - Use only the information available in the provided context.
-  - Do not invent or assume details that are not supported by the context.
-  - The provided book text may be incomplete.
-  - If the context does not contain enough information to answer reliably, say that you do not have enough context to answer accurately.
-  Use the following book context to answer the user's question.
+  - Use only information explicitly supported by the provided context.
+  - Do not use outside knowledge about the book.
+  - Do not invent details or make unsupported assumptions.
+  - If the provided context does not contain enough information to answer the user's question accurately, say: I don't have enough information in the provided book context to answer this accurately.
 
   Book:
   Title: ${book.title}
