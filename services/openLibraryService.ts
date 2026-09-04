@@ -57,6 +57,8 @@ export async function getBookById(bookId: string): Promise<BookMetadata> {
 
   const authorReferences = bookData.authors ?? [];
 
+  // Run all author lookups concurrently and wait until every lookup finishes.
+  // Promise.all returns the resolved values in the same order as the input array.
   const authorNames = await Promise.all(authorReferences.map(getAuthorName));
 
   const authors = authorNames.filter((name): name is string => name !== null);

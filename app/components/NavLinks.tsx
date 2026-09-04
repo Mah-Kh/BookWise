@@ -12,23 +12,28 @@ const links = [
 
 export default function NavLinks() {
   const pathname = usePathname();
-
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <>
       <button
-        className="md:hidden cursor-pointer"
+        type="button"
+        className="cursor-pointer rounded-lg p-2 text-foreground transition-opacity hover:opacity-60 md:hidden"
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
         aria-expanded={isMobileMenuOpen}
       >
-        {`${isMobileMenuOpen ? "×" : "☰"}`}
+        <span className="text-xl leading-none">
+          {isMobileMenuOpen ? "×" : "☰"}
+        </span>
       </button>
-      <nav>
-        <ul
-          className={`md:flex md:flex-row gap-6 ${!isMobileMenuOpen ? "hidden" : "flex flex-col"}`}
-        >
+
+      <nav
+        className={`absolute left-0 right-0 top-full border-b border-border bg-background md:static md:block md:border-0 ${
+          isMobileMenuOpen ? "block" : "hidden"
+        }`}
+      >
+        <ul className="mx-auto flex max-w-6xl flex-col px-6 py-4 sm:px-10 md:flex-row md:items-center md:gap-6 md:px-0 md:py-0">
           {links.map((link) => {
             const isActive = pathname === link.href;
 
@@ -36,10 +41,10 @@ export default function NavLinks() {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className={`text-sm font-medium transition-colors ${
+                  className={`block py-2 text-sm font-medium transition-colors ${
                     isActive
-                      ? "text-zinc-950"
-                      : "text-zinc-600 hover:text-zinc-950"
+                      ? "text-foreground"
+                      : "text-muted hover:text-foreground"
                   }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
