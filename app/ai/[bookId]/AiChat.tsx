@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import type { OllamaResponse } from "@/types/ai";
 import AiSpark from "../../components/AiSpark";
 import AiTypingText from "../../components/AiTypingText";
 
@@ -27,6 +26,7 @@ export default function AiChat({ bookId }: { bookId: string }) {
 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>,
@@ -54,27 +54,31 @@ export default function AiChat({ bookId }: { bookId: string }) {
     try {
       setIsLoading(true);
 
-      const response = await fetch("/api/ai", {
+      const response = await fetch("/api/dev/rag", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          bookId,
-          message,
+          question: message,
         }),
       });
 
       if (response.ok) {
-        const apiResponse: OllamaResponse = await response.json();
+        const apiResponse = await response.json();
 
         // Add the AI response to the existing conversation.
         setMessages((currentMessages) => [
           ...currentMessages,
-          { role: "ai", content: apiResponse.response },
+          { role: "ai", content: apiResponse.answer },
         ]);
       } else {
-        setError("Failed to get a response from the AI.");
+        // setError("Failed to get a response from the AI.");
+        const errorData = await response.json().catch(() => null);
+
+        console.error("RAG API error:", response.status, errorData);
+
+        setError(errorData?.error ?? `AI request failed: ${response.status}`);
       }
     } catch {
       setError("Something went wrong while contacting the AI.");
@@ -157,7 +161,7 @@ export default function AiChat({ bookId }: { bookId: string }) {
         <div className="flex gap-3">
           <div className="relative min-w-0 flex-1">
             {/* Show the animated placeholder only before the conversation starts*/}
-            {!userMessage && messages.length === 0 && (
+            {!userMessage && messages.length === 0 && !isInputFocused && (
               <div className="pointer-events-none absolute inset-y-0 left-5 z-10 flex items-center text-sm text-placeholder">
                 <AiTypingText messages={AI_CHAT_MESSAGES} />
               </div>
@@ -166,7 +170,8 @@ export default function AiChat({ bookId }: { bookId: string }) {
             <input
               value={userMessage}
               placeholder=""
-              onFocus={() => setMessages([{ role: "user", content: "" }])}
+              onFocus={() => setIsInputFocused(true)}
+              onBlur={() => setIsInputFocused(false)}
               onChange={(e) => setUserMessage(e.target.value)}
               className="w-full rounded-full border border-border bg-surface px-5 py-3 text-sm text-foreground outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-soft"
             />

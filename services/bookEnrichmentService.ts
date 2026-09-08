@@ -19,8 +19,6 @@ export type EnrichedBook = {
   bookText: string;
 };
 
-const MAX_BOOK_CONTEXT_LENGTH = 4000;
-
 export async function enrichBook(bookId: string): Promise<EnrichedBook> {
   const bookMetadata = await getBookById(bookId);
 
@@ -74,16 +72,19 @@ export async function enrichBook(bookId: string): Promise<EnrichedBook> {
       .trim();
   }
 
-  const bookContext =
-    cleanedText.length > MAX_BOOK_CONTEXT_LENGTH
-      ? cleanedText.slice(0, MAX_BOOK_CONTEXT_LENGTH)
-      : cleanedText;
+  const storyStartMarker = "CHAPTER I";
+
+  const storyStartIndex = cleanedText.indexOf(storyStartMarker);
+
+  if (storyStartIndex !== -1) {
+    cleanedText = cleanedText.slice(storyStartIndex).trim();
+  }
 
   return {
     title: bookMetadata.title,
     authors: bookMetadata.authors,
     description: bookMetadata.description,
     subjects: bookMetadata.subjects,
-    bookText: bookContext,
+    bookText: cleanedText,
   };
 }
