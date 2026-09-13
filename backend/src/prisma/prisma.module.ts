@@ -1,0 +1,17 @@
+import { Module, OnApplicationShutdown } from '@nestjs/common';
+import { db } from './db.js';
+
+@Module({
+  providers: [
+    {
+      provide: 'DATABASE',
+      useValue: db,
+    },
+  ],
+  exports: ['DATABASE'],
+})
+export class PrismaModule implements OnApplicationShutdown {
+  async onApplicationShutdown() {
+    await db.close();
+  }
+}
