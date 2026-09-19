@@ -42,46 +42,81 @@ export default function AiChat({ bookId }: { bookId: string }) {
 
     setError(null);
     setUserMessage("");
+    setIsLoading(true);
 
-    // Add the user's new message to the existing conversation
     setMessages((currentMessages) => [
-      ...currentMessages.filter(
-        (item) => !(item.role === "user" && item.content === ""),
-      ),
+      ...currentMessages,
       { role: "user", content: message },
+      { role: "ai", content: "" },
     ]);
 
     try {
-      setIsLoading(true);
-
-      const response = await fetch("/api/dev/rag", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `http://localhost:3001/ai/books/${bookId}/chat`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            prompt: message,
+          }),
         },
-        body: JSON.stringify({
-          question: message,
-        }),
-      });
+      );
 
-      if (response.ok) {
-        const apiResponse = await response.json();
+      if (!response.ok || !response.body) {
+        const errorText = await response.text();
 
-        // Add the AI response to the existing conversation.
-        setMessages((currentMessages) => [
-          ...currentMessages,
-          { role: "ai", content: apiResponse.answer },
-        ]);
-      } else {
-        // setError("Failed to get a response from the AI.");
-        const errorData = await response.json().catch(() => null);
+        console.error("Backend error:", errorText);
 
-        console.error("RAG API error:", response.status, errorData);
+        if (errorText.includes("Ready book content not found")) {
+          setError(
+            "AI chat is not available for this book because its full text could not be found.",
+          );
+          return;
+        }
 
-        setError(errorData?.error ?? `AI request failed: ${response.status}`);
+        throw new Error(`AI request failed: ${response.status} - ${errorText}`);
       }
-    } catch {
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { value, done } = await reader.read();
+
+        if (done) {
+          break;
+        }
+
+        const chunk = decoder.decode(value, {
+          stream: true,
+        });
+
+        setMessages((currentMessages) => {
+          const updated = [...currentMessages];
+          const lastIndex = updated.length - 1;
+
+          if (updated[lastIndex]?.role === "ai") {
+            updated[lastIndex] = {
+              ...updated[lastIndex],
+              content: updated[lastIndex].content + chunk,
+            };
+          }
+
+          return updated;
+        });
+      }
+    } catch (error) {
+      console.error("AI error:", error);
+
       setError("Something went wrong while contacting the AI.");
+
+      setMessages((currentMessages) =>
+        currentMessages.filter(
+          (_, index) => index !== currentMessages.length - 1,
+        ),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -134,19 +169,27 @@ export default function AiChat({ bookId }: { bookId: string }) {
                     : "max-w-[80%] rounded-2xl bg-surface-soft px-4 py-3"
                 }
               >
-                <p className="text-sm leading-7 text-foreground">
-                  {message.content}
-                </p>
+                {message.role === "ai" &&
+                message.content === "" &&
+                isLoading ? (
+                  <span className="text-sm text-muted">
+                    <AiTypingText messages={AI_THINKING_MESSAGES} />
+                  </span>
+                ) : (
+                  <p className="text-sm leading-7 text-foreground">
+                    {message.content}
+                  </p>
+                )}
               </div>
             ))}
 
-            {isLoading && (
+            {/* {isLoading && (
               <div className="max-w-[80%] rounded-2xl bg-surface-soft px-4 py-3">
                 <span className="text-sm text-muted">
                   <AiTypingText messages={AI_THINKING_MESSAGES} />
                 </span>
               </div>
-            )}
+            )} */}
 
             {error && (
               <p className="max-w-[80%] rounded-xl bg-highlight/20 px-4 py-3 text-sm leading-6 text-highlight-strong">

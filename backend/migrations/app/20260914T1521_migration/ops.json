@@ -1,0 +1,326 @@
+[
+  {
+    "id": "table.user",
+    "label": "Create table \"user\"",
+    "summary": "Creates table \"user\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"user\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"user\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"user\"",
+        "sql": "CREATE TABLE \"public\".\"user\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"email\" text NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"passwordHash\" text NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"user\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"user\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.userBook",
+    "label": "Create table \"userBook\"",
+    "summary": "Creates table \"userBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "userBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"userBook\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"userBook\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"userBook\"",
+        "sql": "CREATE TABLE \"public\".\"userBook\" (\n  \"bookId\" int4 NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"isFavorite\" bool DEFAULT false NOT NULL,\n  \"status\" text DEFAULT 'WANT_TO_READ' NOT NULL,\n  \"userId\" int4 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"userBook\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"userBook\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.user.user_email_key",
+    "label": "Add unique constraint on \"user\" (email)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "user_email_key",
+        "table": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"user_email_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "user_email_key",
+          "public",
+          "\"public\".\"user\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"user_email_key\"",
+        "sql": "ALTER TABLE \"public\".\"user\" ADD CONSTRAINT \"user_email_key\" UNIQUE (\"email\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"user_email_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "user_email_key",
+          "public",
+          "\"public\".\"user\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.userBook.userBook_userId_bookId_key",
+    "label": "Add unique constraint on \"userBook\" (userId, bookId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "userBook_userId_bookId_key",
+        "table": "userBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"userBook_userId_bookId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "userBook_userId_bookId_key",
+          "public",
+          "\"public\".\"userBook\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"userBook_userId_bookId_key\"",
+        "sql": "ALTER TABLE \"public\".\"userBook\" ADD CONSTRAINT \"userBook_userId_bookId_key\" UNIQUE (\"userId\", \"bookId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"userBook_userId_bookId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "userBook_userId_bookId_key",
+          "public",
+          "\"public\".\"userBook\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.userBook.userBook_bookId_idx_3eec38a3",
+    "label": "Create index \"userBook_bookId_idx_3eec38a3\" on \"userBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "userBook_bookId_idx_3eec38a3",
+        "table": "userBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"userBook_bookId_idx_3eec38a3\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"userBook_bookId_idx_3eec38a3\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"userBook_bookId_idx_3eec38a3\"",
+        "sql": "CREATE INDEX \"userBook_bookId_idx_3eec38a3\" ON \"public\".\"userBook\" (\"bookId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"userBook_bookId_idx_3eec38a3\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"userBook_bookId_idx_3eec38a3\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.userBook.userBook_userId_idx_a489d58a",
+    "label": "Create index \"userBook_userId_idx_a489d58a\" on \"userBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "userBook_userId_idx_a489d58a",
+        "table": "userBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"userBook_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"userBook_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"userBook_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"userBook_userId_idx_a489d58a\" ON \"public\".\"userBook\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"userBook_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"userBook_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.userBook.userBook_userId_fkey",
+    "label": "Add foreign key \"userBook_userId_fkey\" on \"userBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "userBook_userId_fkey",
+        "table": "userBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"userBook_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "userBook_userId_fkey",
+          "public",
+          "\"public\".\"userBook\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"userBook_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"userBook\"\nADD CONSTRAINT \"userBook_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"user\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"userBook_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "userBook_userId_fkey",
+          "public",
+          "\"public\".\"userBook\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.userBook.userBook_bookId_fkey",
+    "label": "Add foreign key \"userBook_bookId_fkey\" on \"userBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "userBook_bookId_fkey",
+        "table": "userBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"userBook_bookId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "userBook_bookId_fkey",
+          "public",
+          "\"public\".\"userBook\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"userBook_bookId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"userBook\"\nADD CONSTRAINT \"userBook_bookId_fkey\"\nFOREIGN KEY (\"bookId\")\nREFERENCES \"public\".\"book\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"userBook_bookId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "userBook_bookId_fkey",
+          "public",
+          "\"public\".\"userBook\""
+        ]
+      }
+    ]
+  }
+]

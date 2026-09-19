@@ -1,5 +1,7 @@
 import { getBookById } from "@/services/openLibraryService";
 import AiChat from "../[bookId]/AiChat";
+import AddToLibraryButton from "./AddToLibraryButton";
+import SimilarBooks from "./SimilarBooks";
 
 export default async function AiBookPage({
   params,
@@ -10,16 +12,28 @@ export default async function AiBookPage({
 
   const bookDetails = await getBookById(bookId);
 
+  const coverUrl = bookDetails.coverId
+    ? `https://covers.openlibrary.org/b/id/${bookDetails.coverId}-L.jpg`
+    : null;
+
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 py-10 sm:px-10 lg:px-12">
       <div className="grid flex-1 gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
         <section className="max-w-xl">
           <div className="aspect-[2/3] w-full max-w-sm overflow-hidden rounded-2xl bg-surface-soft">
-            <div className="flex h-full items-center justify-center p-8">
-              <span className="text-center text-sm font-medium text-subtle">
-                Book Cover
-              </span>
-            </div>
+            {coverUrl ? (
+              <img
+                src={coverUrl}
+                alt={`Cover of ${bookDetails.title}`}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center p-8">
+                <span className="text-center text-sm font-medium text-subtle">
+                  Book Cover
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="mt-6">
@@ -35,10 +49,13 @@ export default async function AiBookPage({
               {bookDetails.description}
             </p>
           </div>
+          <AddToLibraryButton title={bookDetails.title} externalId={bookId} />
         </section>
         <section className="flex min-h-[600px] flex-col">
           <AiChat bookId={bookId} />
         </section>
+
+        <SimilarBooks subjects={bookDetails.subjects} currentBookId={bookId} />
       </div>
     </main>
   );

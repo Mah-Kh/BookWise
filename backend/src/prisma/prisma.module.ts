@@ -12,6 +12,6 @@ import { db } from './db.js';
 })
 export class PrismaModule implements OnApplicationShutdown {
   async onApplicationShutdown() {
-    await db.close();
+    await db.$disconnect();
   }
 }

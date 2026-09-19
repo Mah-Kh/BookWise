@@ -11,6 +11,7 @@ export type BookMetadata = {
   authors: string[];
   description: string;
   subjects: string[];
+  coverId?: number;
 };
 
 export type OpenLibraryAuthorReference = {
@@ -24,4 +25,5 @@ export type OpenLibraryWork = {
   description?: string | { type: string; value: string };
   subjects?: string[];
   authors?: OpenLibraryAuthorReference[];
+  covers?: number[];
 };

@@ -7,10 +7,16 @@ import {
 import { CreateBookDto } from './dto/create-book.dto.js';
 import { UpdateBookDto } from './dto/update-book.dto.js';
 import { BooksRepository } from './repositories/books.repository.js';
+import { OpenLibraryService } from './open-library.service.js';
+import { BookIngestionService } from './book-ingestion.service.js';
 
 @Injectable()
 export class BooksService {
-  constructor(private readonly booksRepository: BooksRepository) {}
+  constructor(
+    private readonly booksRepository: BooksRepository,
+    private readonly openLibraryService: OpenLibraryService,
+    private readonly bookIngestionService: BookIngestionService,
+  ) {}
 
   async getBooks() {
     return this.booksRepository.findAll();
@@ -27,7 +33,18 @@ export class BooksService {
   }
 
   async create(createBookDto: CreateBookDto) {
-    return this.booksRepository.create(createBookDto.title);
+    const externalId = createBookDto.externalId;
+
+    if (externalId) {
+      const existingBook =
+        await this.booksRepository.findByExternalId(externalId);
+
+      if (existingBook) {
+        return existingBook;
+      }
+    }
+
+    return this.booksRepository.create(createBookDto.title, externalId);
   }
 
   async updateBook(id: number, updateBookDto: UpdateBookDto) {
@@ -56,5 +73,13 @@ export class BooksService {
     await this.booksRepository.delete(id);
 
     return { message: 'Book deleted successfully' };
+  }
+
+  async searchExternalBooks(query: string) {
+    return this.openLibraryService.search(query);
+  }
+
+  async ingestBook(id: number) {
+    return this.bookIngestionService.ingest(id);
   }
 }

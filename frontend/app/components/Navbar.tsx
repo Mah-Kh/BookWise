@@ -1,5 +1,6 @@
 import Link from "next/link";
 import NavLinks from "./NavLinks";
+import ProfileNavLink from "./ProfileNavLink";
 
 export default function Navbar() {
   return (
@@ -12,7 +13,11 @@ export default function Navbar() {
         >
           Read With Me
         </Link>
-        <NavLinks />
+
+        <div className="flex items-center gap-4">
+          <NavLinks />
+          <ProfileNavLink />
+        </div>
       </div>
     </div>
   );

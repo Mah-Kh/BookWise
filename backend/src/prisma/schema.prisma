@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ReadingStatus {
+  WANT_TO_READ
+  READING
+  COMPLETED
+}
+
+enum ContentStatus {
+  PENDING
+  PROCESSING
+  READY
+  UNAVAILABLE
+  FAILED
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  userBooks UserBook[]
+}
+
+model Book {
+  id    Int    @id @default(autoincrement())
+  title String
+  externalId String? @unique
+
+  userBooks   UserBook[]
+  bookContent BookContent?
+}
+
+model BookContent {
+  id        Int           @id @default(autoincrement())
+  bookId    Int           @unique
+  source    String
+  externalId String?
+  fullText  String?
+  status    ContentStatus @default(PENDING)
+  error     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  book   Book        @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  chunks BookChunk[]
+}
+
+model BookChunk {
+  id        Int      @id @default(autoincrement())
+  contentId Int
+  index     Int
+  text      String
+  embedding Json?
+  createdAt DateTime @default(now())
+
+  content BookContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([contentId, index])
+}
+
+model UserBook {
+  id         Int           @id @default(autoincrement())
+  userId     Int
+  bookId     Int
+  status     ReadingStatus @default(WANT_TO_READ)
+  isFavorite Boolean       @default(false)
+  createdAt  DateTime      @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  book Book @relation(fields: [bookId], references: [id])
+
+  @@unique([userId, bookId])
+}
